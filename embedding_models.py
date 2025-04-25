@@ -1,31 +1,53 @@
-import requests
+# EmbeddingClient.py
 import numpy as np
+import requests
+from typing import List
+from fastembed import SparseEmbedding  # For type compatibility
+from pydantic import BaseModel
+
+class SparseEmbeddingResponse(BaseModel):
+    indices: List[int]
+    values: List[float]
 
 class EmbeddingModels:
     def __init__(self, service_url: str = 'http://localhost:3000'):
-        """Initialize client to call Bento service."""
-        self.url = service_url.rstrip('/') + '/embed'
-
-    def _call_embed(self, texts: list[str]) -> dict:
-        resp = requests.post(self.url, json={'texts': texts})
-        resp.raise_for_status()
-        return resp.json()
-
-    def get_sparse_embeddings(self, texts: list[str]) -> list:
-        data = self._call_embed(texts)
-        return data['sparse']
-
-    def get_dense_embeddings(self, texts: list[str]) -> list[np.ndarray]:
-        data = self._call_embed(texts)
-        # convert lists back to numpy arrays
-        return [np.array(vec) for vec in data['dense']]
+        """Client for BentoML embedding service"""
+        self.service_url = service_url.rstrip('/')
+        self.batch_size = 32  # Optional: Can be passed to API calls if needed
+        
+    def get_sparse_embeddings(self, texts: List[str]) -> List[SparseEmbedding]:
+        """Get sparse embeddings from service (matches original interface)"""
+        response = requests.post(
+            f"{self.service_url}/embed",
+            json={"texts": texts}
+        )
+        response.raise_for_status()
+        return [
+            SparseEmbedding(
+                indices=np.array(item["indices"], dtype=np.int64),
+                values=np.array(item["values"], dtype=np.float32)
+            ) for item in response.json()["sparse"]
+        ]
+    
+    def get_dense_embeddings(self, texts: List[str]) -> List[np.ndarray]:
+        """Get dense embeddings from service (matches original interface)"""
+        response = requests.post(
+            f"{self.service_url}/embed",
+            json={"texts": texts}
+        )
+        response.raise_for_status()
+        return [np.array(vec, dtype=np.float32) for vec in response.json()["dense"]]
 
     def add_embeddings_to_df(self, df, text_column: str = 'text'):
+        """Same interface as before, now using service"""
         texts = df[text_column].tolist()
-        print('Fetching sparse embeddings from Bento service...')
-        df['sparse_embedding'] = self.get_sparse_embeddings(texts)
-        print('Fetching dense embeddings from Bento service...')
-        df['dense_embedding'] = self.get_dense_embeddings(texts)
+        
+        print("Fetching sparse embeddings from service...")
+        df["sparse_embedding"] = self.get_sparse_embeddings(texts)
+        
+        print("Fetching dense embeddings from service...")
+        df["dense_embedding"] = self.get_dense_embeddings(texts)
+        
         return df
 # import numpy as np
 # from fastembed import TextEmbedding, SparseTextEmbedding, SparseEmbedding # type: ignore
