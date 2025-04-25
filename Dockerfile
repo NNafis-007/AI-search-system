@@ -4,12 +4,20 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
 # Copy source code
-COPY ./app ./app
+COPY ./*py /app/
+COPY ./notebooks/*.py /app/notebooks/
+
+RUN apt-get update && apt-get install -y tree && apt-get clean
+
+RUN tree /app
+RUN ls -R /app
+
+# Install dependencies
+COPY requirements_combined.txt .
+
+RUN pip install --no-cache-dir -r requirements_combined.txt
+
 
 # Expose port
 EXPOSE 8000
