@@ -48,6 +48,9 @@ embeddings/
 *.pth
 *.onnx
 
+*.env
+venv-3.11/
+
 # Docker
 .docker/
 

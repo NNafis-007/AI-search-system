@@ -59,7 +59,8 @@ numpy==2.2.5
 onnxruntime==1.21.1
 orjson==3.10.16
 ormsgpack==1.9.1
-packaging==25.0
+# packaging==25.0
+packaging>=23.2,<25
 pandas
 parso==0.8.4
 pillow==11.2.1
