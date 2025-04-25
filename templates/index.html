@@ -1,15 +1,25 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>FastAPI Text Processor</title>
-</head>
-<body>
-    <h1>Text Reverser</h1>
-    <input type="text" id="inputText" placeholder="Enter text" />
-    <button onclick="sendText()">Submit</button>
-    <br><br>
-    <textarea id="outputText" placeholder="Processed text..." rows="4" cols="50" readonly></textarea>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Product Search</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>🔍 Product Search</h1>
+    </header>
 
-    <script src="/static/script.js"></script>
-</body>
+    <div class="search-bar">
+      <!-- ID must match JS: "searchInput" -->
+      <input id="searchInput" type="text" placeholder="Enter product name…" />
+      <!-- ID must match JS: "searchButton" -->
+      <button id="searchButton">Search</button>
+    </div>
+
+    <main id="results" class="results-grid"></main>
+
+    <!-- load your single JS file from /static/ -->
+    <script src="/static/search.js"></script>
+  </body>
 </html>

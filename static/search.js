@@ -1,9 +1,8 @@
-// static/script.js
+// static/search.js
 
-// sendSearch() is called from the button’s onclick
+// this will be called when the button is clicked
 async function sendSearch() {
-    console.log("Clicked");
-    const query = document.getElementById("inputText").value.trim();
+    const query = document.getElementById("searchInput").value.trim();
     if (!query) return;
   
     const resp = await fetch("/api/search", {
@@ -11,7 +10,6 @@ async function sendSearch() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query, limit: 10 })
     });
-  
     if (!resp.ok) {
       console.error("Search failed:", resp.statusText);
       return;
@@ -40,4 +38,10 @@ async function sendSearch() {
       container.appendChild(card);
     });
   }
+  
+  // wait until the DOM is ready, then wire up the button
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("searchButton")
+            .addEventListener("click", sendSearch);
+  });
   

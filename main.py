@@ -1,10 +1,10 @@
 # main.py
 
-from fastapi import FastAPI, Request, BackgroundTasks
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI, Request, BackgroundTasks # type: ignore 
+from fastapi.middleware.cors import CORSMiddleware # type: ignore
+from fastapi.responses import JSONResponse # type: ignore
+from fastapi.staticfiles import StaticFiles # type: ignore
+from fastapi.templating import Jinja2Templates # type: ignore
 from pydantic import BaseModel
 from typing import List, Dict, Any
 
@@ -38,6 +38,7 @@ class SearchResponse(BaseModel):
 @app.get("/")
 def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
 
 @app.post("/api/search", response_model=SearchResponse)
 async def api_search(query: SearchQuery):

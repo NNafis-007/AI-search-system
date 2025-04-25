@@ -14,7 +14,7 @@ from qdrant_client.models import (
     ScoredPoint,
 )
 from typing import List, Tuple, Dict, Any
-from fastembed import SparseEmbedding
+from fastembed import SparseEmbedding # type: ignore
 
 from embedding_models import EmbeddingModels
 
