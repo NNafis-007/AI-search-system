@@ -1,0 +1,9 @@
+service: "service:SentenceTransformerONNXService"
+include:
+  - "service.py"
+  - "models/**/*"
+python:
+  packages:
+    - bentoml
+    - onnxruntime
+    - transformers
