@@ -16,7 +16,7 @@ QDRANT_URL = os.getenv("QDRANT_URL")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL")
 COLLECTION_NAME = "products"
-TABLE_NAME = "mock_data"
+TABLE_NAME = "all_products"
 
 PG_CONN_PARAMS = {
     "host": os.getenv("PG_HOST"),
@@ -84,8 +84,8 @@ def process_results_for_api(results):
     for result in results:
         processed.append({
             "id": result.id,
-            "text": result.payload.get("text", ""),
-            "product_id": result.payload.get("product_id", ""),
+            "text": result.payload.get("data").get("title"),
+            "product_id": result.payload.get("data").get("category"),
         })
     return processed
 
@@ -121,7 +121,7 @@ def store_user_query(user_query: str) -> None:
     with psycopg2.connect(**PG_CONN_PARAMS) as conn:
         with conn.cursor() as cur:
             cur.execute("""
-                INSERT INTO user_query (text)
+                INSERT INTO user_queries (text)
                 VALUES (%s)
             """, (user_query,))
         conn.commit()
@@ -131,7 +131,7 @@ def store_query_positive(user_query: str, positive: str) -> None:
     with psycopg2.connect(**PG_CONN_PARAMS) as conn:
         with conn.cursor() as cur:
             cur.execute("""
-                INSERT INTO query_positive (query, positive)
+                INSERT INTO finetune_data (query, positive)
                 VALUES (%s, %s)
             """, (user_query, positive))
         conn.commit()

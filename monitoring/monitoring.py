@@ -100,7 +100,6 @@ def get_query_embeddings():
     #     df["embedding"] = df["text"].apply(lambda x: embedding_model.get_dense_embeddings([x])[0])
     #     return df
     response = qdrant_client.scroll(collection_name="user_queries", limit=10000, with_vectors=True)
-    print(response)
     points = response[0]
     rows = []
     for p in points:
@@ -136,9 +135,6 @@ def get_product_embeddings():
     for p in points:
         payload = p.payload or {}
         vectors = p.vector or {}
-        # if i < 1:
-        #     print(p.payload)
-        #     i += 1
         row = {
             "id": p.id,
             "timestamp": payload.get("created_at"),
@@ -224,8 +220,11 @@ def calculate_and_log_drift():
     report.run(reference_data=hist_product_embed_df, current_data=recent_product_embed_df, column_mapping=column_mapping)
     result = report.as_dict()
     result = result["metrics"][0]["result"]["drift_detected"]
-    print(result)
     report.save_html("product_embedding_drift_report.html")
+    if result:
+        print("Data drift detected")
+    else:
+        print("No data drift detected")
 
     # with open("query_embedding_drift_report.html", 'rb') as file_data:
     #     html_content = file_data.read()
