@@ -4,6 +4,7 @@ import os
 import pandas as pd
 from typing import List, Dict, Any
 from dotenv import load_dotenv
+import psycopg2
 
 from notebooks.data_processing import fetch_product_data
 from embedding_models import EmbeddingModels
@@ -16,6 +17,14 @@ QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL")
 COLLECTION_NAME = "products"
 TABLE_NAME = "mock_data"
+
+PG_CONN_PARAMS = {
+    "host": os.getenv("PG_HOST"),
+    "port": os.getenv("PG_PORT"),
+    "dbname": os.getenv("PG_DBNAME"),
+    "user": os.getenv("PG_USER"),
+    "password": os.getenv("PG_PASSWORD"),
+}
 
 embedding_models = None
 
@@ -106,3 +115,23 @@ def run_cli():
         results = hybrid_search(query)
         print("\nSearch Results:")
         print(format_search_results(results))
+
+def store_user_query(user_query: str) -> None:
+    """Store a user query string into the user_query table."""
+    with psycopg2.connect(**PG_CONN_PARAMS) as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO user_query (text)
+                VALUES (%s)
+            """, (user_query,))
+        conn.commit()
+
+def store_query_positive(user_query: str, positive: str) -> None:
+    """Store a query and positive string into the query_positive table."""
+    with psycopg2.connect(**PG_CONN_PARAMS) as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO query_positive (query, positive)
+                VALUES (%s, %s)
+            """, (user_query, positive))
+        conn.commit()
