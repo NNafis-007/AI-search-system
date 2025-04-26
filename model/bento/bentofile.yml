@@ -6,5 +6,4 @@ python:
   packages:
     - bentoml
     - onnxruntime
-    - transformers
     - fastembed

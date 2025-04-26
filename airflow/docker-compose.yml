@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.22.0  # Use the image from GitHub Container Registry
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    ports:
+      - "5000:5000"  # Expose the MLflow UI on port 5000
+    volumes:
+      - ./mlflow:/mlflow  # Persist model storage on your local filesystem
+    command: >
+      /bin/sh -c "mkdir -p /mlflow/artifacts && chown -R root:root /mlflow && chmod -R 777 /mlflow && 
+                  pip install psycopg2-binary &&
+                  mlflow server --host 0.0.0.0 --port 5000 --default-artifact-root /mlflow/artifacts --backend-store-uri postgresql://mlflow_user:mlflow_password@db:5432/mlflow_db"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=mlflow_user
+      - POSTGRES_PASSWORD=mlflow_password
+      - POSTGRES_DB=mlflow_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - mlflow_postgres_data:/var/lib/postgresql/data  # Persist PostgreSQL data
+
+volumes:
+  mlflow_postgres_data:
+    driver: local
