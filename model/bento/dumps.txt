@@ -1,0 +1,147 @@
+# model/bento/service.py
+
+# from pathlib import Path
+# import bentoml
+# from bentoml.mlflow import import_model, load_model
+# from mlflow.tracking import MlflowClient  # :contentReference[oaicite:7]{index=7}
+# from fastembed import TextEmbedding, SparseTextEmbedding
+
+# _DEFAULT_SPARSE = "Qdrant/bm42-all-minilm-l6-v2-attentions"
+# _DEFAULT_DENSE = "sentence-transformers/all-MiniLM-L6-v2"
+# _BATCH_SIZE = 32
+
+# @bentoml.service(
+#     traffic={"timeout": 60},
+#     workers=1
+# )
+# class EmbeddingService:
+#     def __init__(self):
+#         self.client = MlflowClient()  # MLflow client for registry queries :contentReference[oaicite:8]{index=8}
+
+#         # === Sparse Model Setup ===
+#         try:
+#             sparse_versions = self.client.get_latest_versions(
+#                 "sparse_model", stages=["Production"]
+#             )
+#         except Exception as e:
+#             # No registered model named “sparse_model” → fallback
+#             sparse_versions = []
+#             print("No sparse mlflow model found")
+#             # Optionally log.warning(f"No sparse_model in MLflow registry: {e}")
+#         if sparse_versions:
+#             sparse_uri = f"models:/sparse_model/Production"
+#             # Import into BentoML model store
+#             import_model(
+#                 name="sparse_mlflow",
+#                 model_uri=sparse_uri
+#             )  # :contentReference[oaicite:10]{index=10}
+
+#             # Load as an MLflow PyFuncModel
+#             self.sparse_model = load_model("sparse_mlflow:latest")
+#             self.is_sparse_mlflow = True
+#         else:
+#             # Fallback to original embedding class
+#             self.sparse_model = SparseTextEmbedding(
+#                 model_name=_DEFAULT_SPARSE,
+#                 batch_size=_BATCH_SIZE
+#             )
+#             self.is_sparse_mlflow = False
+
+#         # === Dense Model Setup ===
+#         try:
+#             dense_versions = self.client.get_latest_versions(
+#                 "dense_model", stages=["Production"]
+#             )
+#         except Exception:
+#             print("No dense mlflow model found")
+#             dense_versions = []
+#         if dense_versions:
+#             dense_uri = f"models:/dense_model/Production"
+#             import_model(
+#                 name="dense_mlflow",
+#                 model_uri=dense_uri
+#             )  # :contentReference[oaicite:12]{index=12}
+
+#             self.dense_model = load_model("dense_mlflow:latest")
+#             self.is_dense_mlflow = True
+#         else:
+#             self.dense_model = TextEmbedding(
+#                 model_name=_DEFAULT_DENSE,
+#                 batch_size=_BATCH_SIZE
+#             )
+#             self.is_dense_mlflow = False
+
+#     @bentoml.api  # Ensure this decorator is present
+#     def embed(self, texts: list[str]) -> dict[str, list]:
+#         """Handle POST requests to /embed"""
+#         # For MLflow models, they expect a DataFrame input
+#         if self.is_sparse_mlflow:
+#             import pandas as pd
+#             df = pd.DataFrame({"text": texts})
+#             sparse_raw = self.sparse_model.predict(df)  # PyFuncModel.predict :contentReference[oaicite:13]{index=13}
+#         else:
+#             sparse_raw = list(self.sparse_model.embed(texts))
+
+#         if self.is_dense_mlflow:
+#             import pandas as pd
+#             df = pd.DataFrame({"text": texts})
+#             dense_raw = self.dense_model.predict(df)  # PyFuncModel.predict :contentReference[oaicite:14]{index=14}
+#         else:
+#             dense_raw = list(self.dense_model.embed(texts))
+
+#         # Post-process sparse embeddings
+#         sparse = [
+#             {"indices": s.indices.tolist(), "values": s.values.tolist()}
+#             for s in sparse_raw
+#         ]
+#         # Post-process dense embeddings
+#         dense = [d.tolist() for d in dense_raw]
+
+#         return {"sparse": sparse, "dense": dense}
+
+
+# if __name__ == "__main__":
+#     svc = EmbeddingService()
+#     print("Test:", svc.embed(["sample text"]))
+
+
+# model/bento/service.py
+# from pathlib import Path
+# import bentoml
+# from fastembed import TextEmbedding, SparseTextEmbedding
+
+# _DEFAULT_SPARSE = "Qdrant/bm42-all-minilm-l6-v2-attentions"
+# _DEFAULT_DENSE = "sentence-transformers/all-MiniLM-L6-v2"
+# _BATCH_SIZE = 32
+
+# # service.py
+# @bentoml.service(
+#     traffic={"timeout": 60},
+#     workers=1
+# )
+# class EmbeddingService:
+#     def __init__(self):
+#         self.sparse_model = SparseTextEmbedding(
+#             model_name="Qdrant/bm42-all-minilm-l6-v2-attentions",
+#             batch_size=32
+#         )
+#         self.dense_model = TextEmbedding(
+#             model_name="sentence-transformers/all-MiniLM-L6-v2",
+#             batch_size=32
+#         )
+
+#     @bentoml.api  # Make sure this decorator is present
+#     def embed(self, texts: list[str]) -> dict[str, list]:
+#         """Handle POST requests to /embed"""
+#         sparse = list(self.sparse_model.embed(texts))
+#         dense = list(self.dense_model.embed(texts))
+        
+#         return {
+#             "sparse": [{"indices": s.indices.tolist(), 
+#                        "values": s.values.tolist()} for s in sparse],
+#             "dense": [d.tolist() for d in dense]
+#         }
+
+# if __name__ == "__main__":
+#     svc = EmbeddingService()
+#     print("Test:", svc.embed(["sample text"]))

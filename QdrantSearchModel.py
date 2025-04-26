@@ -117,6 +117,7 @@ class QdrantSearchEngine:
         # Compute sparse and dense vectors
         query_sparse_vectors = self.embedding_models.get_sparse_embeddings([query_text])
         query_dense_vector = self.embedding_models.get_dense_embeddings([query_text])
+        print(f"backend: {query_sparse_vectors}")
         
         search_results = self.client.search_batch(
             collection_name=self.collection_name,
