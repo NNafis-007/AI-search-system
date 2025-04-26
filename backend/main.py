@@ -63,6 +63,8 @@ def home(request: Request):
 
 @app.post("/api/search", response_model=SearchResponse)
 async def api_search(query: SearchQuery):
+    print(query.query)
+    store_user_query(query.query)
     results = hybrid_search(query.query, query.limit)
     processed_results = process_results_for_api(results)
     return {"results": processed_results}
