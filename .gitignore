@@ -50,6 +50,7 @@ embeddings/
 
 *.env
 venv-3.11/
+mlruns/
 
 # Docker
 .docker/
