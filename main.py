@@ -8,6 +8,8 @@ from fastapi.templating import Jinja2Templates # type: ignore
 from pydantic import BaseModel
 from typing import List, Dict, Any
 
+from prometheus_fastapi_instrumentator import Instrumentator
+
 from search_utils import (
     hybrid_search,
     process_results_for_api,
@@ -27,6 +29,16 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+
+# Prometheus Monitoring
+instrumentator = Instrumentator(
+    should_group_status_codes=False,
+    should_ignore_untemplated=True,
+    should_respect_env_var=False,
+    excluded_handlers=["/metrics"]
+)
+
+instrumentator.instrument(app).expose(app, include_in_schema=False, endpoint="/metrics")
 
 class SearchQuery(BaseModel):
     query: str
