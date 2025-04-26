@@ -7,3 +7,4 @@ python:
     - bentoml
     - onnxruntime
     - transformers
+    - fastembed
