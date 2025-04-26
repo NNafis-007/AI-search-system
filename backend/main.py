@@ -8,12 +8,16 @@ from fastapi.templating import Jinja2Templates # type: ignore
 from pydantic import BaseModel
 from typing import List, Dict, Any
 
+from prometheus_fastapi_instrumentator import Instrumentator
+
 from search_utils import (
     hybrid_search,
     process_results_for_api,
     load_and_index_data,
     run_cli,
-    initialize_search_engine
+    initialize_search_engine,
+    store_query_positive,
+    store_user_query
 )
 
 app = FastAPI(title="Hybrid Search API")
@@ -28,12 +32,29 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+# Prometheus Monitoring
+instrumentator = Instrumentator(
+    should_group_status_codes=False,
+    should_ignore_untemplated=True,
+    should_respect_env_var=False,
+    excluded_handlers=["/metrics"]
+)
+
+instrumentator.instrument(app).expose(app, include_in_schema=False, endpoint="/metrics")
+
 class SearchQuery(BaseModel):
     query: str
     limit: int = 5
 
 class SearchResponse(BaseModel):
     results: List[Dict[str, Any]]
+
+class UserQueryRequest(BaseModel):
+    user_query: str
+
+class QueryPositiveRequest(BaseModel):
+    user_query: str
+    positive: str
 
 @app.get("/")
 def home(request: Request):
@@ -59,6 +80,16 @@ async def api_status():
         "status": "online",
         "collection_exists": collection_exists
     }
+
+@app.post("/api/store/user_query")
+async def api_store_user_query(request_data: UserQueryRequest):
+    store_user_query(request_data.user_query)
+    return {"status": "User query stored successfully"}
+
+@app.post("/api/store/query_positive")
+async def api_store_query_positive(request_data: QueryPositiveRequest):
+    store_query_positive(request_data.user_query, request_data.positive)
+    return {"status": "Query and positive stored successfully"}
 
 if __name__ == "__main__":
     import argparse
